@@ -500,27 +500,25 @@ if { $create_ddr4_ad8k5 == "TRUE" } {
 
 # User IPs
 set hls_action_src  $action_root/hw/hls_syn_vhdl
+set hdl_action_tcl  $action_root/hw/ip_tcl
 
-if { [file exists $hls_action_src] == 1 } {
-  set tcl_exists [exec find $hls_action_src/ -name *.tcl]
-
-  if { $tcl_exists != "" } {
-    foreach tcl_file [glob -nocomplain -dir $hls_action_src *.tcl] {
-      set tcl_file_name [exec basename $tcl_file]
-      puts "                        sourcing $tcl_file_name"
-      source $tcl_file >> $log_file
-    }
+foreach tcl_file [concat [glob -nocomplain -dir $hls_action_src *.tcl] [glob -nocomplain -dir $hdl_action_tcl *.tcl]] {
+  if { $tcl_file == "" } {
+    continue;
   }
+  set tcl_file_name [exec basename $tcl_file]
+  puts "                        sourcing $tcl_file_name"
+  source $tcl_file >> $log_file
+}
 
-  foreach usr_ip [glob -nocomplain -dir $usr_ip_dir *] {
-    set usr_ip_name [exec basename $usr_ip]
-    puts "                        generating user IP $usr_ip_name"
-    set usr_ip_xci [glob -dir $usr_ip *.xci]
-    #generate_target {instantiation_template} [get_files $z] >> $log_file
-    generate_target all              [get_files $usr_ip_xci] >> $log_file
-    export_ip_user_files -of_objects [get_files $usr_ip_xci] -no_script -force  >> $log_file
-    export_simulation -of_objects    [get_files $usr_ip_xci] -directory $ip_dir/ip_user_files/sim_scripts -force >> $log_file
-  }
+foreach usr_ip [glob -nocomplain -dir $usr_ip_dir *] {
+  set usr_ip_name [exec basename $usr_ip]
+  puts "                        generating user IP $usr_ip_name"
+  set usr_ip_xci [glob -dir $usr_ip *.xci]
+  #generate_target {instantiation_template} [get_files $z] >> $log_file
+  generate_target all              [get_files $usr_ip_xci] >> $log_file
+  export_ip_user_files -of_objects [get_files $usr_ip_xci] -no_script -force  >> $log_file
+  export_simulation -of_objects    [get_files $usr_ip_xci] -directory $ip_dir/ip_user_files/sim_scripts -force >> $log_file
 }
 
 puts "\[CREATE_IPs..........\] done  [clock format [clock seconds] -format {%T %a %b %d %Y}]"
